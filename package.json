@@ -1,0 +1,47 @@
+{
+  "name": "bitte-karma-agent",
+  "description": "Agent for quick lookup of a subjective account karma based on the account activity history across the NEAR ecosystem.",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:next": "next dev",
+    "dev:agent": "make-agent dev -s",
+    "dev:agent-lt": "echo 'Password:' && curl ifconfig.me && echo '\n' && make-agent dev",
+    "dev:agent-ngrok": "ngrok http 3000",
+    "build": "next lint && next build",
+    "register": "make-agent register -u https://bitte-karma-agent.vercel.app",
+    "deploy": "make-agent deploy -u https://bitte-karma-agent.vercel.app"
+  },
+  "dependencies": {
+    "@builddao/near-social-js": "^1.1.0",
+    "@hono/node-server": "^1.13.7",
+    "@hono/zod-openapi": "^0.18.2",
+    "@hono/zod-validator": "^0.4.1",
+    "@radix-ui/react-slot": "^1.1.0",
+    "big.js": "^6.2.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "fuse.js": "^7.0.0",
+    "hono": "^4.6.12",
+    "lucide-react": "^0.461.0",
+    "next": "14.2.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7",
+    "vercel-url": "^0.2.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/big.js": "^6.2.2",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.2.3",
+    "make-agent": "0.0.24-rc.2",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
