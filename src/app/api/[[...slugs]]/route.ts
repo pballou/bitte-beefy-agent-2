@@ -1,33 +1,25 @@
 import { handle } from "hono/vercel";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { getUserKarma } from "@/lib/user-karma";
 import { DEPLOYMENT_URL } from "vercel-url";
-import {
-  KarmaRequestParamsSchema,
-  KarmaResponseSchema,
-  ErrorResponseSchema,
-} from "@/lib/schemas";
+import { getTopBeefyVaults } from "@/lib";
+import { BeefyResponseSchema, ErrorResponseSchema } from "@/lib/schemas";
 
 const app = new OpenAPIHono();
 
-const getKarmaRoute = createRoute({
-  operationId: "get-account-karma",
-  description:
-    "Get account karma and badges based on actions performed by the account.",
-
+// Define route for fetching top yielding Beefy vaults
+const getBeefyRoute = createRoute({
+  operationId: "get-top-yields",
+  description: "Get highest yielding vaults from Beefy Finance with detailed information about TVL, platform, chain, and associated risks.",
   method: "get",
-  path: "/api/karma/{account}",
-  request: {
-    params: KarmaRequestParamsSchema,
-  },
+  path: "/api/beefy/top",
   responses: {
     200: {
       content: {
         "application/json": {
-          schema: KarmaResponseSchema,
+          schema: BeefyResponseSchema,
         },
       },
-      description: "Successful response with karma and badges",
+      description: "Returns top 20 vaults sorted by APY, including detailed vault information",
     },
     400: {
       content: {
@@ -35,18 +27,20 @@ const getKarmaRoute = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: "Bad request",
+      description: "Bad request or failed to fetch data from Beefy API",
     },
   },
+  tags: ["Vaults"],
 });
 
-app.openapi(getKarmaRoute, async (c) => {
-  const { account } = c.req.param();
-  const karma = await getUserKarma(account);
-  if (!karma) {
-    return c.json({ error: `User ${account} not found` }, 400);
+// Handle requests for Beefy vault data
+app.openapi(getBeefyRoute, async (c) => {
+  try {
+    const vaults = await getTopBeefyVaults();
+    return c.json(vaults, 200);
+  } catch (error) {
+    return c.json({ error: "Failed to fetch Beefy data" }, 400);
   }
-  return c.json(karma, 200);
 });
 
 const key = JSON.parse(process.env.BITTE_KEY || "{}");
@@ -64,20 +58,18 @@ if (!config || !config.url) {
 app.doc("/.well-known/ai-plugin.json", {
   openapi: "3.0.0",
   info: {
-    title: "Bitte Karma API",
-    description:
-      "API for retrieving account karma and badges based on actions performed by the account on NEAR blockchain.",
+    title: "Bitte Beefy API",
+    description: "API for finding high-yield opportunities from Beefy Finance with comprehensive risk assessment.",
     version: "1.0.0",
   },
   servers: [{ url: config.url || DEPLOYMENT_URL }],
   "x-mb": {
     "account-id": key.accountId || "",
     assistant: {
-      name: "Karma Agent",
-      description:
-        "An assistant that provides account karma and badges based on actions performed by the account and its current state.",
-      instructions: "Get information about an account's karma and badges.",
-      image: (config?.url || DEPLOYMENT_URL) + "/karma-agent-logo.png",
+      name: "Beefy Yield Agent",
+      description: "An assistant that helps find the best yield opportunities on Beefy Finance with safety in mind.",
+      instructions: "Find the highest yielding vaults on Beefy with detailed information about risks and opportunities.",
+      image: (config?.url || DEPLOYMENT_URL) + "/beefy-agent-logo.png",
     },
   },
 });
@@ -87,7 +79,7 @@ app.get("/api/swagger", (c) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Bitte Karma API Documentation</title>
+        <title>Bitte Beefy API Documentation</title>
         <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
         <style>
           body {

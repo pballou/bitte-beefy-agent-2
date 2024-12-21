@@ -1,32 +1,30 @@
 import { z } from "zod";
 
-export const KarmaRequestParamsSchema = z.object({
-  account: z
-    .string()
-    .describe(
-      "The identifier for the account to get karma and badges for, e.g. ref-finance.near"
-    ),
-});
-
-export const BadgeSchema = z.object({
+// Schema for individual vault data
+export const BeefyVaultSchema = z.object({
   name: z.string(),
   description: z.string(),
-  contractId: z.string().optional(),
-  minBalance: z.number().optional(),
-  karma: z.number(),
+  apy: z.number(),
+  tvl: z.number(),
+  platform: z.string(),
+  chain: z.string(),
+  assets: z.array(z.string()),
+  risks: z.array(z.string()).optional(),
+  addLiquidityUrl: z.string(),
 });
 
-export const KarmaResponseSchema = z.object({
-  accountId: z.string(),
-  badges: z.array(BadgeSchema),
-  karma: z.number(),
+// Type for vault data
+export type BeefyVault = z.infer<typeof BeefyVaultSchema>;
+
+// Response format for the API
+export const BeefyResponseSchema = z.object({
+  vaults: z.array(BeefyVaultSchema),
+  timestamp: z.string()
 });
 
 export const ErrorResponseSchema = z.object({
   error: z.string(),
 });
 
-export type KarmaRequestParams = z.infer<typeof KarmaRequestParamsSchema>;
-export type KarmaResponse = z.infer<typeof KarmaResponseSchema>;
-export type Badge = z.infer<typeof BadgeSchema>;
+export type BeefyResponse = z.infer<typeof BeefyResponseSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;

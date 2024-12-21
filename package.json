@@ -1,6 +1,6 @@
 {
-  "name": "bitte-karma-agent",
-  "description": "Agent for quick lookup of a subjective account karma based on the account activity history across the NEAR ecosystem.",
+  "name": "bitte-beefy-agent",
+  "description": "Agent for finding high-yield opportunities across 23 chains within the Beefy ecosystem with safety and efficiency in mind.",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,8 +9,8 @@
     "dev:agent-lt": "echo 'Password:' && curl ifconfig.me && echo '\n' && make-agent dev",
     "dev:agent-ngrok": "ngrok http 3000",
     "build": "next lint && next build",
-    "register": "make-agent register -u https://bitte-karma-agent.vercel.app",
-    "deploy": "make-agent deploy -u https://bitte-karma-agent.vercel.app"
+    "register": "make-agent register -u https://bitte-beefy-agent.vercel.app",
+    "deploy": "make-agent deploy -u https://bitte-beefy-agent.vercel.app"
   },
   "dependencies": {
     "@builddao/near-social-js": "^1.1.0",
@@ -37,11 +37,16 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "concurrently": "^9.1.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.2.3",
     "make-agent": "0.0.24-rc.2",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
-  }
+  },
+  "volta": {
+    "node": "20.11.1"
+  },
+  "packageManager": "pnpm@8.15.1"
 }
