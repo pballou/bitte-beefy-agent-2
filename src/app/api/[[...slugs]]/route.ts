@@ -8,10 +8,11 @@ const app = new OpenAPIHono();
 
 // Define route for fetching top yielding Beefy vaults
 const getBeefyRoute = createRoute({
-  operationId: "get-top-yields",
-  description: "Get highest yielding vaults from Beefy Finance with detailed information about TVL, platform, chain, and associated risks.",
+  operationId: "get-beefy-top-vaults",
+  description:
+    "Get highest yielding vaults from Beefy Finance with detailed information about TVL, platform, chain, and associated risks.",
   method: "get",
-  path: "/api/beefy/top",
+  path: "/api/beefy-top-vaults",
   responses: {
     200: {
       content: {
@@ -19,7 +20,8 @@ const getBeefyRoute = createRoute({
           schema: BeefyResponseSchema,
         },
       },
-      description: "Returns top 20 vaults sorted by APY, including detailed vault information",
+      description:
+        "Returns top 20 vaults sorted by APY, including detailed vault information",
     },
     400: {
       content: {
@@ -59,7 +61,7 @@ app.doc("/.well-known/ai-plugin.json", {
   openapi: "3.0.0",
   info: {
     title: "Bitte Beefy API",
-    description: "API for finding high-yield opportunities from Beefy Finance with comprehensive risk assessment.",
+    description: "API for finding opportunities from Beefy Finance.",
     version: "1.0.0",
   },
   servers: [{ url: config.url || DEPLOYMENT_URL }],
@@ -67,8 +69,10 @@ app.doc("/.well-known/ai-plugin.json", {
     "account-id": key.accountId || "",
     assistant: {
       name: "Beefy Yield Agent",
-      description: "An assistant that helps find the best yield opportunities on Beefy Finance with safety in mind.",
-      instructions: "Find the highest yielding vaults on Beefy with detailed information about risks and opportunities.",
+      description:
+        "An assistant that helps find the best yield opportunities on Beefy Finance with safety in mind.",
+      instructions:
+        "Find the highest yielding vaults on Beefy with detailed information about risks and opportunities.",
       image: (config?.url || DEPLOYMENT_URL) + "/beefy-agent-logo.png",
     },
   },

@@ -20,7 +20,7 @@ The template supports creating, managing, and deploying the Bitte Biffy Agent fu
 
 ### Endpoints
 
-- Highest yielding vaults from Beefy Finance `GET` `/api/beefy/top`
+- Highest yielding vaults from Beefy Finance `GET` `/api/beefy-top-vaults`
 
 ### Usage
 
@@ -54,7 +54,7 @@ Check out [Next.js deployment documentation](https://nextjs.org/docs/deployment)
 NOTE: Only run this once, when creating a new agent.
 
 ```bash
-make-agent register https://bitte-biffy-agent.vercel.app
+make-agent register -u https://bitte-biffy-agent.vercel.app
 ```
 
 ### Agent redeployment
