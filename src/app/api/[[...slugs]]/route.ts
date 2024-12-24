@@ -10,7 +10,7 @@ const app = new OpenAPIHono();
 const getBeefyRoute = createRoute({
   operationId: "top-beefy-vaults",
   description:
-    "Get highest yielding vaults from Beefy Finance with detailed information about TVL, platform, chain, and associated risks.",
+    "Get highest yielding vaults from Beefy Finance with detailed information about TVL, platform, chain, risks, and safety scores (0-100).",
   method: "get",
   path: "/api/top-beefy-vaults",
   responses: {
