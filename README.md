@@ -4,31 +4,23 @@ Bitte Beefy Agent is a tool for streamlining earning the highest APYs across 23 
 
 ## Overview
 
-Bitte Karma Agent is a tool for assessing account karma based on activity history within the NEAR ecosystem.
-
 Built using Next.js 14 + Shadcn/ui + Hono (using FastNear, NearSocial) + Zod + Swagger UI.
 
 ## Backlog
 
-- [x] Refactor using Zod + Hono to have the OpenAPI schema auto-generated
-- Add more badges and APIs for the karma assessment. Some ideas:
-  - [x] Badges for nearblocks.io
-  - [ ] Badges for Mintbase NFT market value
-  - [ ] Badges for proof of personhood
-- [ ] Use NearSocial contract to store community awarded badges
-- [ ] Define a process for community voting on karma points for each badge
+- [ ] TODO
 
 ## Project Walkthrough
 
-Bitte Karma Agent facilitates the development of AI-powered tools for evaluating account karma. The template supports creating, managing, and deploying karma assessment functionalities, starting with badges.
+The template supports creating, managing, and deploying the Bitte Biffy Agent functionalities.
 
 ### API Base URL
 
-<https://bitte-karma-agent.vercel.app>
+<https://bitte-biffy-agent.vercel.app>
 
 ### Endpoints
 
-- Account Karma `GET` `/api/karma/{account}`
+- Highest yielding vaults from Beefy Finance `GET` `/api/beefy/top`
 
 ### Usage
 
@@ -62,13 +54,13 @@ Check out [Next.js deployment documentation](https://nextjs.org/docs/deployment)
 NOTE: Only run this once, when creating a new agent.
 
 ```bash
-make-agent register https://bitte-karma-agent.vercel.app
+make-agent register https://bitte-biffy-agent.vercel.app
 ```
 
 ### Agent redeployment
 
 ```bash
-make-agent deploy -u https://bitte-karma-agent.vercel.app
+make-agent deploy -u https://bitte-biffy-agent.vercel.app
 ```
 
 ## Troubleshooting
@@ -82,4 +74,4 @@ make-agent deploy -u https://bitte-karma-agent.vercel.app
   - Check response from your plugin API endpoints
   - Check the tunneling service url
 - Error deploying the agent:
-  - Check validity of https://bitte-karma-agent.vercel.app/.well-known/ai-plugin.json openapi schema
+  - Check validity of https://bitte-biffy-agent.vercel.app/.well-known/ai-plugin.json openapi schema
