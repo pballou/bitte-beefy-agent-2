@@ -8,7 +8,7 @@ Built using Next.js 14 + Shadcn/ui + Hono (using FastNear, NearSocial) + Zod + S
 
 ## Backlog
 
-- [ ] TODO
+- [ ] TODO.
 
 ## Project Walkthrough
 
