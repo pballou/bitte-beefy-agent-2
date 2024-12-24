@@ -12,11 +12,11 @@ Built using Next.js 14 + Shadcn/ui + Hono (using FastNear, NearSocial) + Zod + S
 
 ## Project Walkthrough
 
-The template supports creating, managing, and deploying the Bitte Biffy Agent functionalities.
+The template supports creating, managing, and deploying the Bitte Beefy Agent functionalities.
 
 ### API Base URL
 
-<https://bitte-biffy-agent.vercel.app>
+<https://bitte-beefy-agent.vercel.app>
 
 ### Endpoints
 
@@ -54,13 +54,13 @@ Check out [Next.js deployment documentation](https://nextjs.org/docs/deployment)
 NOTE: Only run this once, when creating a new agent.
 
 ```bash
-make-agent register -u https://bitte-biffy-agent.vercel.app
+make-agent register -u https://bitte-beefy-agent.vercel.app
 ```
 
 ### Agent redeployment
 
 ```bash
-make-agent deploy -u https://bitte-biffy-agent.vercel.app
+make-agent deploy -u https://bitte-beefy-agent.vercel.app
 ```
 
 ## Troubleshooting
@@ -74,4 +74,4 @@ make-agent deploy -u https://bitte-biffy-agent.vercel.app
   - Check response from your plugin API endpoints
   - Check the tunneling service url
 - Error deploying the agent:
-  - Check validity of https://bitte-biffy-agent.vercel.app/.well-known/ai-plugin.json openapi schema
+  - Check validity of https://bitte-beefy-agent.vercel.app/.well-known/ai-plugin.json openapi schema
