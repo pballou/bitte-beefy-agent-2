@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, FileJson, Github, BookOpen } from "lucide-react";
+import { BookOpen, ExternalLink, FileJson, Github } from "lucide-react";
 
 export default function Home() {
   return (
@@ -9,8 +9,11 @@ export default function Home() {
       <Card className="max-w-2xl mx-auto border-border">
         <CardHeader>
           <CardTitle className="text-4xl text-foreground">
-            Bitte Karma Agent
+            Bitte Beefy Agent
           </CardTitle>
+          <CardDescription>
+            Find the best yield opportunities across 23 chains in the Beefy ecosystem
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <Button
@@ -56,7 +59,7 @@ export default function Home() {
             asChild
           >
             <a
-              href="https://github.com/alexastrum/bitte-karma-agent"
+              href="https://github.com/agentool/bitte-beefy-agent"
               target="_blank"
               rel="noreferrer"
             >
