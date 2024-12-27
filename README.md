@@ -8,7 +8,8 @@ Built using Next.js 14 + Shadcn/ui + Hono (using FastNear, NearSocial) + Zod + S
 
 ## Backlog
 
-- [ ] TODO.
+- [ ] Add more detailed signals to the agent
+- [ ] Add support for building transactions directly from the agent
 
 ## Project Walkthrough
 
