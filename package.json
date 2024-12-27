@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev:next": "next dev",
-    "dev:agent": "make-agent dev -s",
+    "dev:agent": "pnpm dev:agent-lt",
+    "dev:agent-serveo": "make-agent dev -s",
     "dev:agent-lt": "echo 'Password:' && curl ifconfig.me && echo '\n' && make-agent dev",
     "dev:agent-ngrok": "ngrok http 3000",
     "build": "next lint && next build",
@@ -13,7 +14,6 @@
     "deploy": "make-agent deploy -u https://bitte-beefy-agent.vercel.app"
   },
   "dependencies": {
-    "@builddao/near-social-js": "^1.1.0",
     "@hono/node-server": "^1.13.7",
     "@hono/zod-openapi": "^0.18.2",
     "@hono/zod-validator": "^0.4.1",
@@ -21,7 +21,6 @@
     "big.js": "^6.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "fuse.js": "^7.0.0",
     "hono": "^4.6.12",
     "lucide-react": "^0.461.0",
     "next": "14.2.3",
@@ -40,7 +39,7 @@
     "concurrently": "^9.1.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.2.3",
-    "make-agent": "0.0.24-rc.2",
+    "make-agent": "^0.0.25",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
