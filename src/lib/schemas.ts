@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const LPBreakdownSchema = z.object({
+  price: z.number(),
+  tokens: z.array(z.string()),
+  balances: z.array(z.string()),
+  totalSupply: z.string()
+});
+
 // Schema for individual vault data
 export const BeefyVaultSchema = z.object({
   name: z.string(),
@@ -11,6 +18,9 @@ export const BeefyVaultSchema = z.object({
   assets: z.array(z.string()),
   risks: z.array(z.string()).optional(),
   addLiquidityUrl: z.string(),
+  lastHarvest: z.number().optional(),
+  lpBreakdown: LPBreakdownSchema.optional(),
+  safetyScore: z.number().optional(),
 });
 
 // Type for vault data

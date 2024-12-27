@@ -33,7 +33,7 @@ const nextConfig = {
         source: "/.well-known/ai-plugin.json",
         destination: "/api/ai-plugin"
       }
-    ]
+    ];
   },
 };
 
