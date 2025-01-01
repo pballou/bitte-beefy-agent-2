@@ -1,7 +1,7 @@
 import { BeefyResponse, BeefyVault } from './schemas';
 
 // API endpoints for Beefy Finance
-const BEEFY_API = {
+export const BEEFY_API = {
   VAULTS: 'https://api.beefy.finance/vaults',
   APY: 'https://api.beefy.finance/apy',
   APY_BREAKDOWN: 'https://api.beefy.finance/apy/breakdown',

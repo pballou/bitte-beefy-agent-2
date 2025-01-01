@@ -2,7 +2,9 @@ import { handle } from "hono/vercel";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { DEPLOYMENT_URL } from "vercel-url";
 import { getTopBeefyVaults } from "@/lib";
-import { BeefyResponseSchema, ErrorResponseSchema } from "@/lib/schemas";
+import { BeefyResponseSchema, ErrorResponseSchema, HealthCheckSchema, TransactionRequestSchema, SignRequestSchema, BalancesResponseSchema } from "@/lib/schemas";
+import { encodeDepositTransaction, encodeWithdrawTransaction, getVaultBalance } from '@/lib/transactions';
+import { isValidAddress, getProviderForChain, SUPPORTED_CHAINS } from '@/lib/utils';
 
 const app = new OpenAPIHono();
 
@@ -31,6 +33,14 @@ const getBeefyRoute = createRoute({
       },
       description: "Bad request or failed to fetch data from Beefy API",
     },
+    500: {
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: "Server error",
+    }
   },
   tags: ["Vaults"],
 });
@@ -41,7 +51,10 @@ app.openapi(getBeefyRoute, async (c) => {
     const vaults = await getTopBeefyVaults();
     return c.json(vaults, 200);
   } catch (error) {
-    return c.json({ error: "Failed to fetch Beefy data" }, 400);
+    if (error instanceof Error) {
+      return c.json({ error: error.message }, 400);
+    }
+    return c.json({ error: "Internal server error" }, 500);
   }
 });
 
@@ -70,9 +83,10 @@ app.doc("/.well-known/ai-plugin.json", {
     assistant: {
       name: "Beefy Yield Agent",
       description:
-        "An assistant that helps find the best yield opportunities on Beefy Finance with safety in mind.",
+        "An assistant that helps find the best yield opportunities on Beefy Finance with safety in mind and can execute vault transactions.",
       instructions:
-        "Get top-beefy-vaults, then analyze metrics to suggest the best opportunities matching user requirements.",
+        "Get top-beefy-vaults, then analyze metrics to suggest the best opportunities matching user requirements. Can execute vault transactions (deposit/withdraw) using generate-evm-tx tool. Supports multiple EVM networks.",
+      tools: [{ type: "generate-evm-tx" }],
       image: (config?.url || DEPLOYMENT_URL) + "/beefy-agent-logo.png",
     },
   },
@@ -114,6 +128,206 @@ app.get("/api/swagger", (c) => {
     </html>
   `);
 });
+
+// Health check endpoint
+app.openapi(
+  {
+    method: 'get',
+    path: '/api/health',
+    operationId: 'health-check',
+    description: 'Check if the service is running',
+    responses: {
+      200: {
+        description: 'Service status',
+        content: {
+          'application/json': {
+            schema: HealthCheckSchema,
+          },
+        },
+      },
+    },
+  },
+  (c) => {
+    return c.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    });
+  }
+);
+
+// Transaction endpoint
+app.openapi(
+  {
+    method: 'post' as const,
+    path: '/api/transaction',
+    operationId: 'create-transaction',
+    description: 'Create a deposit or withdrawal transaction for a Beefy vault',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: TransactionRequestSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: 'Transaction data',
+        content: {
+          'application/json': {
+            schema: SignRequestSchema
+          }
+        }
+      },
+      400: {
+        description: 'Invalid parameters',
+        content: {
+          'application/json': {
+            schema: ErrorResponseSchema
+          }
+        }
+      },
+      500: {
+        description: 'Server error',
+        content: {
+          'application/json': {
+            schema: ErrorResponseSchema
+          }
+        }
+      }
+    }
+  } as const,
+  async (c) => {
+    try {
+      const body = await c.req.json();
+      const input = TransactionRequestSchema.parse(body);
+
+      if (!isValidAddress(input.vaultAddress)) {
+        throw new Error('Invalid vault address');
+      }
+      if (!isValidAddress(input.safeAddress)) {
+        throw new Error('Invalid safe address');
+      }
+      if (!SUPPORTED_CHAINS[input.chainId as keyof typeof SUPPORTED_CHAINS]) {
+        throw new Error(`Chain ID ${input.chainId} not supported`);
+      }
+
+      const data = input.action === 'deposit' 
+        ? await encodeDepositTransaction(input.vaultAddress, input.amount)
+        : await encodeWithdrawTransaction(input.vaultAddress, input.amount);
+
+      return c.json({
+        method: 'eth_sendTransaction' as const,
+        chainId: input.chainId,
+        params: [{
+          to: input.vaultAddress,
+          data,
+          value: '0x0'
+        }]
+      }, 200);
+    } catch (error) {
+      if (error instanceof Error) {
+        return c.json({ error: error.message }, 400);
+      }
+      return c.json({ error: 'Internal server error' }, 500);
+    }
+  }
+);
+
+// Balance check endpoint
+app.openapi(
+  {
+    method: 'get' as const,
+    path: '/api/balances',
+    operationId: 'get-vault-balance',
+    description: 'Get user balance for a specific vault',
+    parameters: [
+      {
+        in: 'query',
+        name: 'vaultAddress',
+        required: true,
+        schema: { type: 'string' }
+      },
+      {
+        in: 'query',
+        name: 'userAddress',
+        required: true,
+        schema: { type: 'string' }
+      },
+      {
+        in: 'query',
+        name: 'chainId',
+        required: true,
+        schema: { type: 'number' }
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Vault balance',
+        content: {
+          'application/json': {
+            schema: BalancesResponseSchema
+          }
+        }
+      },
+      400: {
+        description: 'Invalid input parameters',
+        content: {
+          'application/json': {
+            schema: ErrorResponseSchema
+          }
+        }
+      },
+      500: {
+        description: 'Server error',
+        content: {
+          'application/json': {
+            schema: ErrorResponseSchema
+          }
+        }
+      }
+    }
+  } as const,
+  async (c) => {
+    try {
+      const query = c.req.query();
+      const vaultAddress = query.vaultAddress;
+      const userAddress = query.userAddress;
+      const chainId = parseInt(query.chainId as string);
+
+      // Validate required parameters
+      if (!vaultAddress || !userAddress || isNaN(chainId)) {
+        throw new Error('Missing or invalid required parameters');
+      }
+
+      if (!isValidAddress(vaultAddress) || !isValidAddress(userAddress)) {
+        throw new Error('Invalid address format');
+      }
+
+      const provider = getProviderForChain(chainId);
+      const { balance, decimals } = await getVaultBalance(
+        vaultAddress,
+        userAddress,
+        provider
+      );
+
+      return c.json({
+        balances: [{
+          vaultAddress,
+          balance: balance.toString(),
+          decimals,
+          symbol: 'mooToken'
+        }]
+      }, 200);
+    } catch (error) {
+      if (error instanceof Error) {
+        return c.json({ error: error.message }, 400);
+      }
+      return c.json({ error: 'Internal server error' }, 500);
+    }
+  }
+);
 
 export const GET = handle(app);
 export const POST = handle(app);
