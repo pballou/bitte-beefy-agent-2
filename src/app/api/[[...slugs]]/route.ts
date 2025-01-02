@@ -5,16 +5,17 @@ import { getTopBeefyVaults } from "@/lib";
 import { BeefyResponseSchema, ErrorResponseSchema, HealthCheckSchema, TransactionRequestSchema, SignRequestSchema, BalancesResponseSchema } from "@/lib/schemas";
 import { encodeDepositTransaction, encodeWithdrawTransaction, getVaultBalance } from '@/lib/transactions';
 import { isValidAddress, getProviderForChain, SUPPORTED_CHAINS } from '@/lib/utils';
+import { API_ENDPOINTS, OPERATION_IDS } from '@/lib/constants';
 
 const app = new OpenAPIHono();
 
 // Define route for fetching top yielding Beefy vaults
 const getBeefyRoute = createRoute({
-  operationId: "top-beefy-vaults",
+  operationId: OPERATION_IDS.TOP_BEEFY_VAULTS,
   description:
     "Get highest yielding vaults from Beefy Finance with detailed information about TVL, platform, chain, risks, and safety scores (0-100). Example: 'Show me the top 5 yield opportunities, taking into account safety scores and platform stability'",
   method: "get",
-  path: "/api/top-beefy-vaults",
+  path: API_ENDPOINTS.TOP_VAULTS,
   responses: {
     200: {
       content: {
@@ -133,8 +134,8 @@ app.get("/api/swagger", (c) => {
 app.openapi(
   {
     method: 'get',
-    path: '/api/health',
-    operationId: 'health-check',
+    path: API_ENDPOINTS.HEALTH,
+    operationId: OPERATION_IDS.HEALTH_CHECK,
     description: 'Check if the service is running',
     responses: {
       200: {
@@ -159,8 +160,8 @@ app.openapi(
 app.openapi(
   {
     method: 'post' as const,
-    path: '/api/transaction',
-    operationId: 'create-transaction',
+    path: API_ENDPOINTS.TRANSACTION,
+    operationId: OPERATION_IDS.CREATE_TRANSACTION,
     description: 'Create a deposit or withdrawal transaction for a Beefy vault',
     request: {
       body: {
@@ -202,20 +203,30 @@ app.openapi(
     try {
       const body = await c.req.json();
       const input = TransactionRequestSchema.parse(body);
+      console.log('Processing transaction request:', { chainId: input.chainId, action: input.action });
 
       if (!isValidAddress(input.vaultAddress)) {
+        console.warn('Invalid vault address provided:', input.vaultAddress);
         throw new Error('Invalid vault address');
       }
       if (!isValidAddress(input.safeAddress)) {
+        console.warn('Invalid safe address provided:', input.safeAddress);
         throw new Error('Invalid safe address');
       }
       if (!SUPPORTED_CHAINS[input.chainId as keyof typeof SUPPORTED_CHAINS]) {
+        console.warn('Unsupported chain ID:', input.chainId);
         throw new Error(`Chain ID ${input.chainId} not supported`);
       }
 
       const data = input.action === 'deposit' 
         ? await encodeDepositTransaction(input.vaultAddress, input.amount)
         : await encodeWithdrawTransaction(input.vaultAddress, input.amount);
+
+      console.log('Transaction created successfully:', { 
+        action: input.action, 
+        vaultAddress: input.vaultAddress,
+        chainId: input.chainId 
+      });
 
       return c.json({
         method: 'eth_sendTransaction' as const,
@@ -227,6 +238,7 @@ app.openapi(
         }]
       }, 200);
     } catch (error) {
+      console.error('Transaction creation failed:', error);
       if (error instanceof Error) {
         return c.json({ error: error.message }, 400);
       }
@@ -239,8 +251,8 @@ app.openapi(
 app.openapi(
   {
     method: 'get' as const,
-    path: '/api/balances',
-    operationId: 'get-vault-balance',
+    path: API_ENDPOINTS.BALANCES,
+    operationId: OPERATION_IDS.GET_VAULT_BALANCE,
     description: 'Get user balance for a specific vault',
     parameters: [
       {
@@ -295,13 +307,16 @@ app.openapi(
       const vaultAddress = query.vaultAddress;
       const userAddress = query.userAddress;
       const chainId = parseInt(query.chainId as string);
+      
+      console.log('Processing balance request:', { vaultAddress, userAddress, chainId });
 
-      // Validate required parameters
       if (!vaultAddress || !userAddress || isNaN(chainId)) {
+        console.warn('Missing required parameters:', { vaultAddress, userAddress, chainId });
         throw new Error('Missing or invalid required parameters');
       }
 
       if (!isValidAddress(vaultAddress) || !isValidAddress(userAddress)) {
+        console.warn('Invalid address format:', { vaultAddress, userAddress });
         throw new Error('Invalid address format');
       }
 
@@ -312,6 +327,12 @@ app.openapi(
         provider
       );
 
+      console.log('Balance retrieved successfully:', { 
+        vaultAddress, 
+        balance: balance.toString(),
+        userAddress 
+      });
+
       return c.json({
         balances: [{
           vaultAddress,
@@ -321,6 +342,7 @@ app.openapi(
         }]
       }, 200);
     } catch (error) {
+      console.error('Balance check failed:', error);
       if (error instanceof Error) {
         return c.json({ error: error.message }, 400);
       }

@@ -66,13 +66,30 @@ make-agent deploy -u https://bitte-beefy-agent.vercel.app
 
 ## Troubleshooting
 
-- Errors starting the Next.js development server:
-  - Use ai to troubleshoot the error message
-- Errors starting the agent development server:
-  - Try again in 24 hours
+- Transaction errors (400):
+  - Check vault/safe addresses are valid Ethereum addresses
+  - Verify amount is in wei (18 decimals)
+  - Confirm chainId is 1 (only Ethereum supported)
+  - Check server logs for validation errors
+
+- Tunneling issues:
+  - If localtunnel fails, try `pnpm dev:agent-serveo`
+  - If both fail, check firewall/VPN settings
+
+- generate-evm-tx errors:
+  - Verify safe has sufficient balance
+  - Ensure safe has approved vault contract
+  - Check gas settings
+  - Review server logs for detailed error messages
+
+- Development server:
+  - Port 3000 already in use? Kill process or change port
+  - Check .env.local has NEAR_ENV="mainnet"
+
 - Unexpected response from the agent:
   - Check response from https://localhost:3000/.well-known/ai-plugin.json
   - Check response from your plugin API endpoints
   - Check the tunneling service url
+
 - Error deploying the agent:
   - Check validity of https://bitte-beefy-agent.vercel.app/.well-known/ai-plugin.json openapi schema
