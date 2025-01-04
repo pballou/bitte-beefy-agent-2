@@ -8,7 +8,9 @@ export function cn(...inputs: ClassValue[]) {
 
 // Currently supported chains and their identifiers
 export const SUPPORTED_CHAINS = {
-  1: 'ethereum'
+  1: 'ethereum',
+  8453: 'base',
+  42161: 'arbitrum'
 } as const;
 
 // Validate Ethereum address format
@@ -26,5 +28,12 @@ export function getProviderForChain(chainId: number): ethers.JsonRpcProvider {
   if (!SUPPORTED_CHAINS[chainId as keyof typeof SUPPORTED_CHAINS]) {
     throw new Error(`Unsupported chain ID: ${chainId}`);
   }
-  return new ethers.JsonRpcProvider('https://ethereum.publicnode.com');
+
+  const RPC_URLS = {
+    1: 'https://ethereum.publicnode.com',
+    8453: 'https://base.publicnode.com',
+    42161: 'https://arbitrum.publicnode.com'
+  };
+
+  return new ethers.JsonRpcProvider(RPC_URLS[chainId as keyof typeof RPC_URLS]);
 }

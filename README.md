@@ -69,7 +69,7 @@ make-agent deploy -u https://bitte-beefy-agent.vercel.app
 - Transaction errors (400):
   - Check vault/safe addresses are valid Ethereum addresses
   - Verify amount is in wei (18 decimals)
-  - Confirm chainId is 1 (only Ethereum supported)
+  - Confirm chainId is supported (1: Ethereum, 8453: Base, 42161: Arbitrum)
   - Check server logs for validation errors
 
 - Tunneling issues:

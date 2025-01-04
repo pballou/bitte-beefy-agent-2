@@ -58,7 +58,7 @@ function transformVaultData(
       vault.tvl > 10000
     )
     .sort((a, b) => b.apy - a.apy)
-    .slice(0, 20);
+    .slice(0, 25);
 }
 
 /**
