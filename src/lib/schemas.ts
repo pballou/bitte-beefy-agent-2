@@ -16,6 +16,7 @@ export const BeefyVaultSchema = z.object({
   platform: z.string(),
   chain: z.string(),
   assets: z.array(z.string()),
+  vaultAddress: z.string(),
   risks: z.array(z.string()).optional(),
   addLiquidityUrl: z.string(),
   lastHarvest: z.number().optional(),

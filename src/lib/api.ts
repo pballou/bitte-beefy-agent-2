@@ -45,6 +45,7 @@ function transformVaultData(
         platform: vault.platformId,
         chain: vault.network || vault.chain,
         assets: vault.assets,
+        vaultAddress: vault.earnContractAddress,
         risks: vault.risks,
         addLiquidityUrl: `https://app.beefy.com/vault/${vault.id}`,
         lastHarvest: vault.lastHarvest,
