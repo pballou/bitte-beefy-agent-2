@@ -24,7 +24,7 @@ const getBeefyRoute = createRoute({
         },
       },
       description:
-        "Returns top 25 vaults sorted by APY, including detailed vault information",
+        "Returns top 200 vaults sorted by TVL, including detailed vault information",
     },
     400: {
       content: {

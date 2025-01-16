@@ -55,11 +55,11 @@ function transformVaultData(
     })
     .filter(vault => 
       vault.apy > 0 && 
-      vault.apy < 1000 && 
-      vault.tvl > 10000
+      vault.apy < 1000 && // Reasonable APY filter
+      vault.tvl > 10000   // Minimum TVL filter
     )
-    .sort((a, b) => b.apy - a.apy)
-    .slice(0, 25);
+    .sort((a, b) => b.tvl - a.tvl) // Sort by TVL
+    .slice(0, 200);      // Return top 200 vaults
 }
 
 /**
