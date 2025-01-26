@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { BEEFY_API } from './api';
 
 // Core ABIs needed for interacting with Beefy vaults
 const BEEFY_VAULT_ABI = [
