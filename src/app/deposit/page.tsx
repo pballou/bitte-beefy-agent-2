@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ConnectButton } from '@/components/ui/ConnectButton'
 import { useVaultContract } from '@/hooks/useVaultContract'
@@ -9,7 +10,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ExternalLink } from 'lucide-react'
 
-// WETH ABI for wrap/unwrap operations
+// Core ABIs - only including methods we need
 const WETH_ABI = [
   {
     "inputs": [],
@@ -44,19 +45,20 @@ const ERC20_ABI = [
   }
 ] as const
 
-// Chain-specific wrapped native token addresses
+// Map of wrapped native tokens by chain ID (e.g., WETH on Base)
 const WRAPPED_NATIVE: Record<number, `0x${string}`> = {
   8453: '0x4200000000000000000000000000000000000006', // WETH on Base
   137: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',  // WMATIC on Polygon
   // Add more as needed
 }
 
-// Helper to determine if this is a native token vault
+// Helper to check if vault accepts native token (ETH, MATIC, etc)
 const isNativeTokenVault = (tokenAddress: string): boolean => {
   return Object.values(WRAPPED_NATIVE).includes(tokenAddress as `0x${string}`)
 }
 
-export default function DepositPage() {
+// Create a separate component for the deposit form
+function DepositForm() {
   const searchParams = useSearchParams()
   const { deposit } = useVaultContract()
   const { isConnected, address } = useAccount()
@@ -221,9 +223,9 @@ export default function DepositPage() {
 
       setStatus('depositing')
 
-      // Check if this is a native token vault
+      // Handle deposit flow for both native tokens (requiring wrapping) and ERC20 tokens
       if (isNativeTokenVault(tokenAddress)) {
-        // Native token flow (ETH, MATIC, etc.)
+        // Native token flow (e.g., ETH -> WETH)
         setErrorMessage('Wrapping native token...')
         
         const wrapHash = await walletClient.writeContract({
@@ -242,9 +244,8 @@ export default function DepositPage() {
           args: [vaultAddress as `0x${string}`, amount]
         })
         await publicClient.waitForTransactionReceipt({ hash: approveHash })
-
       } else {
-        // ERC20 token flow
+        // Standard ERC20 token flow
         setErrorMessage('Approving token...')
         const approveHash = await walletClient.writeContract({
           address: tokenAddress as `0x${string}`,
@@ -255,7 +256,7 @@ export default function DepositPage() {
         await publicClient.waitForTransactionReceipt({ hash: approveHash })
       }
 
-      // Final deposit (same for both flows)
+      // Final deposit step (same for both flows)
       setErrorMessage('Depositing to vault...')
       const depositHash = await deposit({
         vaultAddress,
@@ -417,5 +418,14 @@ export default function DepositPage() {
         )}
       </div>
     </div>
+  )
+}
+
+// Wrap the form in Suspense
+export default function DepositPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DepositForm />
+    </Suspense>
   )
 }
