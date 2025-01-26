@@ -4,10 +4,12 @@ import { BEEFY_VAULT_ABI } from '@/lib/contracts'
 import { type VaultTransactionParams } from '@/lib/contracts'
 import { useWriteContract, useAccount, useReadContract } from 'wagmi'
 
+// Hook for interacting with Beefy vault contracts
 export function useVaultContract() {
   const { isConnected } = useAccount()
   const { writeContractAsync } = useWriteContract()
 
+  // Handle vault deposits with proper error handling and chain ID support
   const deposit = async ({ vaultAddress, amount, chainId }: VaultTransactionParams) => {
     if (!isConnected) throw new Error('Wallet not connected')
 
@@ -27,7 +29,7 @@ export function useVaultContract() {
     }
   }
 
-  // Read functions
+  // Get vault name - useful for UI display
   const useVaultName = (vaultAddress?: `0x${string}`, chainId?: number) => {
     return useReadContract({
       address: vaultAddress,
