@@ -4,28 +4,43 @@ Bitte Beefy Agent is a tool for streamlining earning the highest APYs across 23 
 
 ## Overview
 
-Built using Next.js 14 + Shadcn/ui + Hono (using FastNear, NearSocial) + Zod + Swagger UI.
+Built using Next.js 14 + Shadcn/ui + Hono + Zod + Swagger UI.
 
-## Backlog
-
-- [ ] Add more detailed signals to the agent
-- [ ] Add support for building transactions directly from the agent
-
-## Project Walkthrough
-
-The template supports creating, managing, and deploying the Bitte Beefy Agent functionalities.
-
-### API Base URL
+## API Base URL
 
 <https://bitte-beefy-agent.vercel.app>
 
-### Endpoints
+## Endpoints
 
-- Highest yielding vaults from Beefy Finance `GET` `/api/beefy-top-vaults`
+1. **Get Top Vaults** 
+   - `GET /api/beefy-top-vaults`
+   - Returns highest yielding vaults with safety scores and details
+   - Example: "Show me the top 5 yield opportunities on Base"
 
-### Usage
+2. **Generate Deposit URL**
+   - `POST /api/generate-evm-tx`
+   - Creates a clickable deposit link with pre-filled transaction details
+   - Required params: vault address, amount, chainId, tokenAddress
+   - Optional: vaultId (for Beefy app linking)
+   - Example: "I want to deposit 0.1 ETH into the cbETH-WETH vault"
 
-Make LLM requests to the endpoints above. Refer to the full API documentation for detailed parameter and response information.
+## Usage Flow
+
+1. AI fetches top vaults and analyzes them for the user
+2. User selects a vault to deposit into
+3. AI generates a deposit URL with all necessary parameters
+4. User clicks the link to open our deposit interface
+5. Interface handles wallet connection, network switching, and deposit execution
+
+## Example AI Interaction
+
+"Show me the safest yield opportunities on Base with at least 10% APY"
+1. AI fetches vaults from `/api/beefy-top-vaults`
+2. AI analyzes metrics (TVL, safety score, APY) to find best matches
+3. AI presents filtered options to user
+4. User: "I want to deposit 0.1 ETH into the cbETH-WETH vault"
+5. AI uses `/api/generate-evm-tx` to create deposit link
+6. User clicks link to execute deposit through our interface
 
 ## Getting Started
 
@@ -71,16 +86,6 @@ make-agent deploy -u https://bitte-beefy-agent.vercel.app
   - Verify amount is in wei (18 decimals)
   - Confirm chainId is supported (1: Ethereum, 8453: Base, 42161: Arbitrum)
   - Check server logs for validation errors
-
-- Tunneling issues:
-  - If localtunnel fails, try `pnpm dev:agent-serveo`
-  - If both fail, check firewall/VPN settings
-
-- generate-evm-tx errors:
-  - Verify safe has sufficient balance
-  - Ensure safe has approved vault contract
-  - Check gas settings
-  - Review server logs for detailed error messages
 
 - Development server:
   - Port 3000 already in use? Kill process or change port
