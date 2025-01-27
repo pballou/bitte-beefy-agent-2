@@ -77,3 +77,18 @@ export const BalanceSchema = z.object({
 export const BalancesResponseSchema = z.object({
   balances: z.array(BalanceSchema)
 });
+
+// URL Generation Request Schema
+export const GenerateUrlRequestSchema = z.object({
+  vault: z.string().describe('The vault address to deposit into'),
+  amount: z.string().describe('The amount to deposit in ETH'),
+  chainId: z.number().describe('The chain ID where the vault is deployed'),
+  vaultId: z.string().optional().describe('The Beefy vault identifier for linking to app.beefy.com'),
+  tokenAddress: z.string().describe('The address of the token to deposit (WETH for ETH deposits)')
+});
+
+// URL Generation Response Schema
+export const GenerateUrlResponseSchema = z.object({
+  url: z.string().describe('URL to the deposit interface with pre-filled parameters'),
+  message: z.string().describe('Human readable description of the deposit')
+});

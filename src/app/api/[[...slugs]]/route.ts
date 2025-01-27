@@ -3,9 +3,11 @@ import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { DEPLOYMENT_URL } from "vercel-url";
 import { getTopBeefyVaults } from "@/lib";
 import { BeefyResponseSchema, ErrorResponseSchema, HealthCheckSchema, TransactionRequestSchema, SignRequestSchema, BalancesResponseSchema } from "@/lib/schemas";
-import { encodeDepositTransaction, encodeWithdrawTransaction, getVaultBalance } from '@/lib/transactions';
+import { getVaultBalance } from '@/lib/transactions';
 import { isValidAddress, getProviderForChain, SUPPORTED_CHAINS } from '@/lib/utils';
 import { API_ENDPOINTS, OPERATION_IDS } from '@/lib/constants';
+import { GenerateUrlRequestSchema, GenerateUrlResponseSchema } from "@/lib/schemas";
+import { formatUnits } from "ethers";
 
 const app = new OpenAPIHono();
 
@@ -156,96 +158,74 @@ app.openapi(
   }
 );
 
-// Transaction endpoint
-app.openapi(
-  {
-    method: 'post' as const,
-    path: API_ENDPOINTS.TRANSACTION,
-    operationId: OPERATION_IDS.CREATE_TRANSACTION,
-    description: 'Create a deposit or withdrawal transaction for a Beefy vault',
-    request: {
-      body: {
-        content: {
-          'application/json': {
-            schema: TransactionRequestSchema,
-          },
-        },
-      },
-    },
-    responses: {
-      200: {
-        description: 'Transaction data',
-        content: {
-          'application/json': {
-            schema: SignRequestSchema
-          }
-        }
-      },
-      400: {
-        description: 'Invalid parameters',
-        content: {
-          'application/json': {
-            schema: ErrorResponseSchema
-          }
-        }
-      },
-      500: {
-        description: 'Server error',
-        content: {
-          'application/json': {
-            schema: ErrorResponseSchema
-          }
+const transactionRoute = createRoute({
+  method: 'post',
+  path: '/api/generate-evm-tx',
+  operationId: 'generate-evm-tx',
+  description: 'Generate a URL for depositing into a Beefy vault. Returns a clickable link that opens our deposit interface with pre-filled transaction details. Example: "Create a deposit link for 0.1 ETH into the cbETH-WETH vault"',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: GenerateUrlRequestSchema
         }
       }
     }
-  } as const,
-  async (c) => {
-    try {
-      const body = await c.req.json();
-      const input = TransactionRequestSchema.parse(body);
-      console.log('Processing transaction request:', { chainId: input.chainId, action: input.action });
-
-      if (!isValidAddress(input.vaultAddress)) {
-        console.warn('Invalid vault address provided:', input.vaultAddress);
-        throw new Error('Invalid vault address');
+  },
+  responses: {
+    200: {
+      description: 'Transaction URL generated successfully',
+      content: {
+        'application/json': {
+          schema: GenerateUrlResponseSchema
+        }
       }
-      if (!isValidAddress(input.safeAddress)) {
-        console.warn('Invalid safe address provided:', input.safeAddress);
-        throw new Error('Invalid safe address');
+    },
+    400: {
+      description: 'Invalid parameters',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema
+        }
       }
-      if (!SUPPORTED_CHAINS[input.chainId as keyof typeof SUPPORTED_CHAINS]) {
-        console.warn('Unsupported chain ID:', input.chainId);
-        throw new Error(`Chain ID ${input.chainId} not supported`);
-      }
-
-      const data = input.action === 'deposit' 
-        ? await encodeDepositTransaction(input.vaultAddress, input.amount)
-        : await encodeWithdrawTransaction(input.vaultAddress, input.amount);
-
-      console.log('Transaction created successfully:', { 
-        action: input.action, 
-        vaultAddress: input.vaultAddress,
-        chainId: input.chainId 
-      });
-
-      return c.json({
-        method: 'eth_sendTransaction' as const,
-        chainId: input.chainId,
-        params: [{
-          to: input.vaultAddress,
-          data,
-          value: '0x0'
-        }]
-      }, 200);
-    } catch (error) {
-      console.error('Transaction creation failed:', error);
-      if (error instanceof Error) {
-        return c.json({ error: error.message }, 400);
-      }
-      return c.json({ error: 'Internal server error' }, 500);
     }
   }
-);
+});
+
+app.openapi(transactionRoute, async (c) => {
+  try {
+    const { vault, amount, vaultId, chainId, tokenAddress } = await c.req.json();
+    
+    // Validate inputs
+    if (!vault || !amount || !chainId || !tokenAddress) {
+      throw new Error('Missing required parameters');
+    }
+
+    // Validate chain ID
+    if (!(chainId in SUPPORTED_CHAINS)) {
+      throw new Error(`Unsupported chain ID. Supported chains are: ${Object.entries(SUPPORTED_CHAINS)
+        .map(([id, name]) => `${id} (${name})`)
+        .join(', ')}`);
+    }
+
+    // Validate addresses
+    if (!isValidAddress(vault) || !isValidAddress(tokenAddress)) {
+      throw new Error('Invalid address format');
+    }
+
+    const url = `${DEPLOYMENT_URL}/deposit?vault=${vault}&amount=${amount}&chainId=${chainId}&tokenAddress=${tokenAddress}${vaultId ? `&vaultId=${vaultId}` : ''}`;
+    
+    return c.json({
+      url,
+      message: `Click to deposit ${formatUnits(BigInt(amount), 18)} ETH into vault ${vault}`
+    }, 200);
+  } catch (error) {
+    console.error('URL generation failed:', error);
+    return c.json({ 
+      error: error instanceof Error ? error.message : "Internal server error" 
+    }, 400);
+  }
+});
 
 // Balance check endpoint
 app.openapi(
