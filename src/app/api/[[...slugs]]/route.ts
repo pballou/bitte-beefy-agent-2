@@ -89,7 +89,37 @@ app.doc("/.well-known/ai-plugin.json", {
         "An assistant that helps find the best yield opportunities on Beefy Finance with safety in mind and can execute vault transactions.",
       instructions:
         "Get top-beefy-vaults, then analyze metrics to suggest the best opportunities matching user requirements. Can execute vault transactions (deposit/withdraw) using generate-evm-tx tool. Supports multiple EVM networks.",
-      tools: [{ type: "generate-evm-tx" }],
+      tools: [
+        { 
+          type: "function",
+          function: {
+            name: "generate-evm-tx",
+            description: "Generate a URL for depositing into a Beefy vault",
+            parameters: {
+              type: "object",
+              properties: {
+                vault: {
+                  type: "string",
+                  description: "The vault address to deposit into"
+                },
+                amount: {
+                  type: "string",
+                  description: "The amount to deposit in ETH"
+                },
+                chainId: {
+                  type: "number",
+                  description: "The chain ID where the vault is deployed"
+                },
+                tokenAddress: {
+                  type: "string",
+                  description: "The address of the token to deposit"
+                }
+              },
+              required: ["vault", "amount", "chainId", "tokenAddress"]
+            }
+          }
+        }
+      ],
       image: (config?.url || DEPLOYMENT_URL) + "/beefy-agent-logo.png",
     },
   },
