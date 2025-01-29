@@ -243,7 +243,7 @@ app.openapi(transactionRoute, async (c) => {
       throw new Error('Invalid address format');
     }
 
-    const url = `${DEPLOYMENT_URL}/deposit?vault=${vault}&amount=${amount}&chainId=${chainId}&tokenAddress=${tokenAddress}${vaultId ? `&vaultId=${vaultId}` : ''}`;
+    const url = `${DEPLOYMENT_URL}/deposit?vault=${vault}&amount=${amount}&chainId=${chainId}&tokenAddress=${tokenAddress}`;
     
     return c.json({
       url,
