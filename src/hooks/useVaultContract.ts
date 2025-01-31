@@ -1,7 +1,6 @@
 'use client'
 
-import { BEEFY_VAULT_ABI } from '@/lib/contracts'
-import { type VaultTransactionParams } from '@/lib/contracts'
+import { BEEFY_VAULT_ABI, type VaultTransactionParams } from '@/lib/contracts'
 import { useWriteContract, useAccount, useReadContract } from 'wagmi'
 
 // Hook for interacting with Beefy vault contracts
