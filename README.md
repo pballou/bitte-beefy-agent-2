@@ -18,7 +18,7 @@ Built using Next.js 14 + Shadcn/ui + Hono + Zod + Swagger UI.
    - Example: "Show me the top 5 yield opportunities on Base"
 
 2. **Generate Deposit URL**
-   - `POST /api/generate-evm-tx`
+   - `POST /api/generate-deposit-url`
    - Creates a clickable deposit link with pre-filled transaction details
    - Required params: vault address, amount, chainId, tokenAddress
    - Optional: vaultId (for Beefy app linking)
@@ -39,7 +39,7 @@ Built using Next.js 14 + Shadcn/ui + Hono + Zod + Swagger UI.
 2. AI analyzes metrics (TVL, safety score, APY) to find best matches
 3. AI presents filtered options to user
 4. User: "I want to deposit 0.1 ETH into the cbETH-WETH vault"
-5. AI uses `/api/generate-evm-tx` to create deposit link
+5. AI uses `/api/generate-deposit-url` to create deposit link
 6. User clicks link to execute deposit through our interface
 
 ## Getting Started
@@ -98,3 +98,13 @@ make-agent deploy -u https://bitte-beefy-agent.vercel.app
 
 - Error deploying the agent:
   - Check validity of https://bitte-beefy-agent.vercel.app/.well-known/ai-plugin.json openapi schema
+
+### Environment Variables
+
+Required in your `.env.local` and Vercel deployment:
+
+```bash
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="your_project_id_here"
+```
+
+Get your WalletConnect project ID from [WalletConnect Cloud](https://cloud.walletconnect.com/)
