@@ -2,11 +2,9 @@ import { handle } from "hono/vercel";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { DEPLOYMENT_URL } from "vercel-url";
 import { getTopBeefyVaults } from "@/lib";
-import { BeefyResponseSchema, ErrorResponseSchema, HealthCheckSchema, TransactionRequestSchema, SignRequestSchema, BalancesResponseSchema } from "@/lib/schemas";
-import { getVaultBalance } from '@/lib/transactions';
-import { isValidAddress, getProviderForChain, SUPPORTED_CHAINS } from '@/lib/utils';
+import { BeefyResponseSchema, ErrorResponseSchema, HealthCheckSchema, GenerateUrlRequestSchema, GenerateUrlResponseSchema } from "@/lib/schemas";
+import { isValidAddress, SUPPORTED_CHAINS } from '@/lib/utils';
 import { API_ENDPOINTS, OPERATION_IDS } from '@/lib/constants';
-import { GenerateUrlRequestSchema, GenerateUrlResponseSchema } from "@/lib/schemas";
 import { formatUnits } from "ethers";
 
 const app = new OpenAPIHono();
@@ -94,25 +92,25 @@ app.doc("/.well-known/ai-plugin.json", {
           type: "function",
           function: {
             name: "generate-evm-tx",
-            description: "Generate a URL for depositing into a Beefy vault",
+            description: "Creates a clickable deposit URL. IMPORTANT: This tool returns a URL, not a transaction. Example: Calling generate-evm-tx with vault=0x123... amount=1000000 chainId=8453 returns {url: 'https://...', message: 'Click to deposit 0.001 ETH...'}", 
             parameters: {
               type: "object",
               properties: {
                 vault: {
                   type: "string",
-                  description: "The vault address to deposit into"
+                  description: "Vault address (e.g., 0xA6854c1F54198D351D6d4263806F5A876099839b for cbETH-WETH LP)"
                 },
                 amount: {
                   type: "string",
-                  description: "The amount to deposit in ETH"
+                  description: "Amount in wei (e.g., 1000000000000000 for 0.001 ETH)"
                 },
                 chainId: {
                   type: "number",
-                  description: "The chain ID where the vault is deployed"
+                  description: "Chain ID (e.g., 8453 for Base network)"
                 },
                 tokenAddress: {
                   type: "string",
-                  description: "The address of the token to deposit"
+                  description: "Token address (e.g., 0x4200000000000000000000000000000000000006 for WETH on Base)"
                 }
               },
               required: ["vault", "amount", "chainId", "tokenAddress"]
@@ -192,7 +190,7 @@ const transactionRoute = createRoute({
   method: 'post',
   path: '/api/generate-evm-tx',
   operationId: 'generate-evm-tx',
-  description: 'Generate a URL for depositing into a Beefy vault. Returns a clickable link that opens our deposit interface with pre-filled transaction details. Example: "Create a deposit link for 0.1 ETH into the cbETH-WETH vault"',
+  description: 'Generate a URL for depositing into a Beefy vault. Returns a clickable link that opens our deposit interface with pre-filled transaction details.',
   request: {
     body: {
       content: {
@@ -256,110 +254,6 @@ app.openapi(transactionRoute, async (c) => {
     }, 400);
   }
 });
-
-// Balance check endpoint
-app.openapi(
-  {
-    method: 'get' as const,
-    path: API_ENDPOINTS.BALANCES,
-    operationId: OPERATION_IDS.GET_VAULT_BALANCE,
-    description: 'Get user balance for a specific vault',
-    parameters: [
-      {
-        in: 'query',
-        name: 'vaultAddress',
-        required: true,
-        schema: { type: 'string' }
-      },
-      {
-        in: 'query',
-        name: 'userAddress',
-        required: true,
-        schema: { type: 'string' }
-      },
-      {
-        in: 'query',
-        name: 'chainId',
-        required: true,
-        schema: { type: 'number' }
-      }
-    ],
-    responses: {
-      200: {
-        description: 'Vault balance',
-        content: {
-          'application/json': {
-            schema: BalancesResponseSchema
-          }
-        }
-      },
-      400: {
-        description: 'Invalid input parameters',
-        content: {
-          'application/json': {
-            schema: ErrorResponseSchema
-          }
-        }
-      },
-      500: {
-        description: 'Server error',
-        content: {
-          'application/json': {
-            schema: ErrorResponseSchema
-          }
-        }
-      }
-    }
-  } as const,
-  async (c) => {
-    try {
-      const query = c.req.query();
-      const vaultAddress = query.vaultAddress;
-      const userAddress = query.userAddress;
-      const chainId = parseInt(query.chainId as string);
-      
-      console.log('Processing balance request:', { vaultAddress, userAddress, chainId });
-
-      if (!vaultAddress || !userAddress || isNaN(chainId)) {
-        console.warn('Missing required parameters:', { vaultAddress, userAddress, chainId });
-        throw new Error('Missing or invalid required parameters');
-      }
-
-      if (!isValidAddress(vaultAddress) || !isValidAddress(userAddress)) {
-        console.warn('Invalid address format:', { vaultAddress, userAddress });
-        throw new Error('Invalid address format');
-      }
-
-      const provider = getProviderForChain(chainId);
-      const { balance, decimals } = await getVaultBalance(
-        vaultAddress,
-        userAddress,
-        provider
-      );
-
-      console.log('Balance retrieved successfully:', { 
-        vaultAddress, 
-        balance: balance.toString(),
-        userAddress 
-      });
-
-      return c.json({
-        balances: [{
-          vaultAddress,
-          balance: balance.toString(),
-          decimals,
-          symbol: 'mooToken'
-        }]
-      }, 200);
-    } catch (error) {
-      console.error('Balance check failed:', error);
-      if (error instanceof Error) {
-        return c.json({ error: error.message }, 400);
-      }
-      return c.json({ error: 'Internal server error' }, 500);
-    }
-  }
-);
 
 export const GET = handle(app);
 export const POST = handle(app);
