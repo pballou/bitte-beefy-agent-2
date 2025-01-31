@@ -86,13 +86,13 @@ app.doc("/.well-known/ai-plugin.json", {
       description:
         "An assistant that helps find the best yield opportunities on Beefy Finance with safety in mind and can execute vault transactions.",
       instructions:
-        "Get top-beefy-vaults, then analyze metrics to suggest the best opportunities matching user requirements. Can execute vault transactions (deposit/withdraw) using generate-evm-tx tool. Supports multiple EVM networks.",
+        "Get top-beefy-vaults, then analyze metrics to suggest the best opportunities matching user requirements. Can generate deposit URLs using generate-deposit-url tool to help users connect their wallet and deposit. Supports multiple EVM networks.",
       tools: [
         { 
           type: "function",
           function: {
-            name: "generate-evm-tx",
-            description: "Creates a clickable deposit URL. IMPORTANT: This tool returns a URL, not a transaction. Example: Calling generate-evm-tx with vault=0x123... amount=1000000 chainId=8453 returns {url: 'https://...', message: 'Click to deposit 0.001 ETH...'}", 
+            name: "generate-deposit-url",
+            description: "Creates a clickable deposit URL that opens our deposit interface with pre-filled parameters. Example: Calling this with vault=0x123... amount=1000000 chainId=8453 returns a URL you can click to deposit 0.001 ETH", 
             parameters: {
               type: "object",
               properties: {
@@ -188,8 +188,8 @@ app.openapi(
 
 const transactionRoute = createRoute({
   method: 'post',
-  path: '/api/generate-evm-tx',
-  operationId: 'generate-evm-tx',
+  path: API_ENDPOINTS.GENERATE_DEPOSIT_URL,
+  operationId: 'generate-deposit-url',
   description: 'Generate a URL for depositing into a Beefy vault. Returns a clickable link that opens our deposit interface with pre-filled transaction details.',
   request: {
     body: {
