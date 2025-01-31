@@ -59,7 +59,7 @@ function transformVaultData(
       vault.tvl > 10000   // Minimum TVL filter
     )
     .sort((a, b) => b.tvl - a.tvl) // Sort by TVL
-    .slice(0, 200);      // Return top 200 vaults
+    .slice(0, 100);      // Return top 100 vaults
 }
 
 /**

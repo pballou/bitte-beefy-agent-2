@@ -37,45 +37,10 @@ export const ErrorResponseSchema = z.object({
   error: z.string(),
 });
 
-export type BeefyResponse = z.infer<typeof BeefyResponseSchema>;
-export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
-
-// Transaction Request Schema
-export const TransactionRequestSchema = z.object({
-  chainId: z.number(),
-  safeAddress: z.string(),
-  vaultAddress: z.string(),
-  amount: z.string(), // In token units
-  action: z.enum(['deposit', 'withdraw'])
-});
-
-// Transaction Response Schema
-export const SignRequestSchema = z.object({
-  method: z.literal('eth_sendTransaction'),
-  chainId: z.number(),
-  params: z.array(z.object({
-    to: z.string(),
-    data: z.string(),
-    value: z.string()
-  }))
-});
-
 // Health Check Response
 export const HealthCheckSchema = z.object({
   status: z.string(),
   timestamp: z.string()
-});
-
-// Balance Response
-export const BalanceSchema = z.object({
-  vaultAddress: z.string(),
-  balance: z.string(),
-  symbol: z.string(),
-  decimals: z.number()
-});
-
-export const BalancesResponseSchema = z.object({
-  balances: z.array(BalanceSchema)
 });
 
 // URL Generation Request Schema
@@ -92,3 +57,6 @@ export const GenerateUrlResponseSchema = z.object({
   url: z.string().describe('URL to the deposit interface with pre-filled parameters'),
   message: z.string().describe('Human readable description of the deposit')
 });
+
+export type BeefyResponse = z.infer<typeof BeefyResponseSchema>;
+export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
